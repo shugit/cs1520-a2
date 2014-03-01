@@ -1,0 +1,234 @@
+From 643bb8e535bf356f1eea327301128733d853dea7 Mon Sep 17 00:00:00 2001
+From: Shuwen Zhou <jacobc3@gmail.com>
+Date: Mon, 17 Feb 2014 10:46:00 -0500
+Subject: [PATCH] Initialize
+
+---
+ .htaccess                          |    2 +-
+ app/.htaccess                      |    2 +-
+ app/Config/database.php            |   85 ++++++++++++++++++++++++++++++++++++
+ app/Controller/PostsController.php |   20 ++++++++
+ app/Model/Post.php                 |    4 ++
+ app/View/Posts/add.ctp             |    7 +++
+ app/View/Posts/index.ctp           |   28 ++++++++++++
+ app/webroot/.htaccess              |    2 +-
+ 8 files changed, 147 insertions(+), 3 deletions(-)
+ create mode 100644 app/Config/database.php
+ create mode 100644 app/Controller/PostsController.php
+ create mode 100644 app/Model/Post.php
+ create mode 100644 app/View/Posts/add.ctp
+ create mode 100644 app/View/Posts/index.ctp
+
+diff --git a/.htaccess b/.htaccess
+index 4eef46e..0153f36 100644
+--- a/.htaccess
++++ b/.htaccess
+@@ -1,6 +1,6 @@
+ <IfModule mod_rewrite.c>
+    RewriteEngine on
+-   RewriteBase /~YOUR_PITT_ID/PATH/TO/CAKEPHP
++   RewriteBase /~shz58/cakephp
+    RewriteRule    ^$ app/webroot/    [L]
+    RewriteRule    (.*) app/webroot/$1 [L]
+ </IfModule>
+diff --git a/app/.htaccess b/app/.htaccess
+index 4d4c95f..e960860 100644
+--- a/app/.htaccess
++++ b/app/.htaccess
+@@ -1,6 +1,6 @@
+ <IfModule mod_rewrite.c>
+     RewriteEngine on
+-    RewriteBase /~YOUR_PITT_ID/PATH/TO/CAKEPHP
++    RewriteBase /~shz58/cakephp
+     RewriteRule    ^$    webroot/    [L]
+     RewriteRule    (.*) webroot/$1    [L]
+ </IfModule>
+diff --git a/app/Config/database.php b/app/Config/database.php
+new file mode 100644
+index 0000000..f84d05b
+--- /dev/null
++++ b/app/Config/database.php
+@@ -0,0 +1,85 @@
++<?php
++/**
++ *
++ *
++ * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
++ * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
++ *
++ * Licensed under The MIT License
++ * For full copyright and license information, please see the LICENSE.txt
++ * Redistributions of files must retain the above copyright notice.
++ *
++ * @copyright     Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
++ * @link          http://cakephp.org CakePHP(tm) Project
++ * @package       app.Config
++ * @since         CakePHP(tm) v 0.2.9
++ * @license       http://www.opensource.org/licenses/mit-license.php MIT License
++ */
++
++/**
++ * Database configuration class.
++ *
++ * You can specify multiple configurations for production, development and testing.
++ *
++ * datasource => The name of a supported datasource; valid options are as follows:
++ *  Database/Mysql - MySQL 4 & 5,
++ *  Database/Sqlite - SQLite (PHP5 only),
++ *  Database/Postgres - PostgreSQL 7 and higher,
++ *  Database/Sqlserver - Microsoft SQL Server 2005 and higher
++ *
++ * You can add custom database datasources (or override existing datasources) by adding the
++ * appropriate file to app/Model/Datasource/Database. Datasources should be named 'MyDatasource.php',
++ *
++ *
++ * persistent => true / false
++ * Determines whether or not the database should use a persistent connection
++ *
++ * host =>
++ * the host you connect to the database. To add a socket or port number, use 'port' => #
++ *
++ * prefix =>
++ * Uses the given prefix for all the tables in this database. This setting can be overridden
++ * on a per-table basis with the Model::$tablePrefix property.
++ *
++ * schema =>
++ * For Postgres/Sqlserver specifies which schema you would like to use the tables in.
++ * Postgres defaults to 'public'. For Sqlserver, it defaults to empty and use
++ * the connected user's default schema (typically 'dbo').
++ *
++ * encoding =>
++ * For MySQL, Postgres specifies the character encoding to use when connecting to the
++ * database. Uses database default not specified.
++ *
++ * unix_socket =>
++ * For MySQL to connect via socket specify the `unix_socket` parameter instead of `host` and `port`
++ *
++ * settings =>
++ * Array of key/value pairs, on connection it executes SET statements for each pair
++ * For MySQL : http://dev.mysql.com/doc/refman/5.6/en/set-statement.html
++ * For Postgres : http://www.postgresql.org/docs/9.2/static/sql-set.html
++ * For Sql Server : http://msdn.microsoft.com/en-us/library/ms190356.aspx
++ */
++class DATABASE_CONFIG {
++
++	public $default = array(
++		'datasource' => 'Database/Mysql',
++		'persistent' => false,
++		'host' => '127.0.0.1',
++		'login' => 'shz58',
++		'password' => '123',
++		'database' => 'shz58db',
++		'prefix' => '',
++		//'encoding' => 'utf8',
++	);
++
++	public $test = array(
++		'datasource' => 'Database/Mysql',
++		'persistent' => false,
++		'host' => 'localhost',
++		'login' => 'user',
++		'password' => 'password',
++		'database' => 'test_database_name',
++		'prefix' => '',
++		//'encoding' => 'utf8',
++	);
++}
+diff --git a/app/Controller/PostsController.php b/app/Controller/PostsController.php
+new file mode 100644
+index 0000000..add8c72
+--- /dev/null
++++ b/app/Controller/PostsController.php
+@@ -0,0 +1,20 @@
++<?php
++class PostsController extends AppController{
++	public $helpers = array('Html', 'Form');
++
++	public function index() {
++		$this->set('posts', $this->Post->find('all'));
++	}
++
++	public function add() {
++        	if ($this->request->is('post')) {
++            	$this->Post->create();
++            	if ($this->Post->save($this->request->data)) {
++                	$this->Session->setFlash(__('Your post has been saved.'));
++                	return $this->redirect(array('action' => 'index'));
++            	}
++            	$this->Session->setFlash(__('Unable to add your post.'));
++        	}
++    	}
++}
++?>
+diff --git a/app/Model/Post.php b/app/Model/Post.php
+new file mode 100644
+index 0000000..b27ab74
+--- /dev/null
++++ b/app/Model/Post.php
+@@ -0,0 +1,4 @@
++<?php
++class Post extends AppModel{
++}
++?>
+diff --git a/app/View/Posts/add.ctp b/app/View/Posts/add.ctp
+new file mode 100644
+index 0000000..c36d35e
+--- /dev/null
++++ b/app/View/Posts/add.ctp
+@@ -0,0 +1,7 @@
++<h1>Add Post</h1>
++<?php
++echo $this->Form->create('Post');
++echo $this->Form->input('title');
++echo $this->Form->input('body', array('rows' => '3'));
++echo $this->Form->end('Save Post');
++?>
+diff --git a/app/View/Posts/index.ctp b/app/View/Posts/index.ctp
+new file mode 100644
+index 0000000..5bf2fec
+--- /dev/null
++++ b/app/View/Posts/index.ctp
+@@ -0,0 +1,28 @@
++<?php print_r($posts); ?>
++<h1>Blog posts</h1>
++
++<?php 
++    echo $this->Html->link('Add Post', array('controller' => 'posts', 'action' => 'add'));
++?>
++
++<table>
++    <tr>
++        <th>Id</th>
++        <th>Title</th>
++        <th>Created</th>
++    </tr>
++
++    <!-- Here is where we loop through our $posts array, printing out post info -->
++
++    <?php foreach ($posts as $post): ?>
++    <tr>
++        <td><?php echo $post['Post']['id']; ?></td>
++        <td>
++            <?php echo $this->Html->link($post['Post']['title'],
++array('controller' => 'posts', 'action' => 'view', $post['Post']['id'])); ?>
++        </td>
++        <td><?php echo $post['Post']['created']; ?></td>
++    </tr>
++    <?php endforeach; ?>
++    <?php unset($post); ?>
++</table>
+diff --git a/app/webroot/.htaccess b/app/webroot/.htaccess
+index cd08045..5ef1eeb 100644
+--- a/app/webroot/.htaccess
++++ b/app/webroot/.htaccess
+@@ -1,6 +1,6 @@
+ <IfModule mod_rewrite.c>
+     RewriteEngine On
+-    RewriteBase /~YOUR_PITT_ID/PATH/TO/CAKEPHP
++    RewriteBase /~shz58/cakephp
+     RewriteCond %{REQUEST_FILENAME} !-d
+     RewriteCond %{REQUEST_FILENAME} !-f
+     RewriteRule ^ index.php [L]
+-- 
+1.7.1
+
